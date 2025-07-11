@@ -1,0 +1,10 @@
+requests
+pandas
+tqdm
+matplotlib
+scipy
+transformers
+torch
+numpy
+seaborn
+scikit-learn
