@@ -1,14 +1,14 @@
-# Get embeddings for all DMS substitutions in ProteinGym
-from transformers import AutoModel
-from transformers import AutoTokenizer
-import torch
+import os
+import io
+import datetime
 import pandas as pd
 import numpy as np
-import os
-import datetime
-import boto3 #for accessing s3
+import torch
+import boto3
 import s3fs
+from transformers import AutoModel, AutoTokenizer
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from botocore.config import Config
 
 
 print(f"[{datetime.datetime.now()}] All packaged imported.")
@@ -21,9 +21,9 @@ my_config = Config(
 )
 print(f"[{datetime.datetime.now()}] S3 config intiialized.")
 
-
-# Define S3 path
-pgfolder = "s3://research-model-checkpoints/DMS_ProteinGym_substitutions/"
+# Replace with your bucket name and prefix (if applicable)
+bucket_name = "your-s3-bucket-name"
+prefix = "your-prefix-to-data-files"
 
 # Initialize S3 client
 s3 = boto3.client('s3', config=my_config)
@@ -34,11 +34,6 @@ s3_client = session.client('s3', config=my_config)
 
 # Pass it to s3fs
 fs = s3fs.S3FileSystem(session=session)
-
-
-# Extract bucket name and prefix (folder path in S3)
-bucket_name = "research-model-checkpoints"
-prefix = "DMS_ProteinGym_substitutions/"
 
 # List all CSV files in the S3 bucket
 response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -111,12 +106,9 @@ def one_hot_encode_sequence(sequence, aa_alphabet="ACDEFGHIKLMNPQRSTVWY"):
     
     return one_hot_matrix.flatten().tolist()  # Flatten for storing in CSV
 
-
-
-
 # Length limit of AMPLIFY is 2048 amino acids 
 # How many proteins are longer than this?
-# This code chunk takes like 1min so be patient
+# This code chunk takes like 2min so be patient
 prot_lens_dict = {}
 
 for file_key in file_keys:
@@ -140,8 +132,9 @@ filtered_file_keys = [
     and prot_lens_dict[key] <= 2048 
     #ignore what has already been processed
     and not key.endswith("_with_scoresandembeddings.csv")
+    # Replace if you have other file endings that you want ignored
     and not key.endswith("_with_scoresandembeddings_allyears.csv")
-    and not key.endswith("_with_scoresandembeddings_allyearsTEST.csv")
+    and not key.endswith("_any_other_suffixes.csv")
 ]
 len(filtered_file_keys)
 
@@ -155,7 +148,7 @@ for file_key in filtered_file_keys:
     new_s3_path = f"s3://{bucket_name}/{new_filename}"
 
     if fs.exists(new_s3_path):
-        #print(f"[{datetime.datetime.now()}] Skipping {s3_path} (Already Processed)")
+        print(f"[{datetime.datetime.now()}] Skipping {s3_path} (Already Processed)")
         continue  # Skip if the file is already processed
 
     print(f"[{datetime.datetime.now()}] Processing {s3_path}")
@@ -195,28 +188,14 @@ for year in range(2011, 2025):
 
 print("All models loaded")
 
-# Now, with those files completed also generate embeddings and score with the other yearly models 
-# Still underconstruction!!! 
+### All other yearly models ###
 
-# Define your S3 bucket and get filtered file keys
+# Filter file keys for things already processed by 120M and 350M model
 filtered_file_keys = [key for key in file_keys if key.endswith("_with_scoresandembeddings.csv")]
 print(f"[{datetime.datetime.now()}] Found {len(filtered_file_keys)} CSV files to process with all years.")
 
-#reverse it
-filtered_file_keys.reverse()
-filtered_file_keys = filtered_file_keys[40:]
-
-# PARALLELIZED FILE TEST WITH ALL MODELS IN S3
-
 # Disable Hugging Face tokenizer parallelism to avoid conflicts
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# S3 Configuration
-#fs = s3fs.S3FileSystem(anon=False)  # Ensure authentication
-
-# Get all files from S3 that match the pattern
-
-print(f"Found {len(filtered_file_keys)} files in S3 to process.")
 
 chunk_size = 5000  # Adjust based on available memory
 years = list(range(2011, 2025))  # Years to process

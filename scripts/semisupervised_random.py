@@ -11,18 +11,16 @@ import numpy as np
 from tqdm.auto import tqdm
 import ast
 
-# Define S3 path
-pgfolder = "s3://research-model-checkpoints/DMS_ProteinGym_substitutions/"
-
 # Initialize S3 client
 s3 = boto3.client("s3")
 
-# Extract bucket name and prefix (folder path in S3)
-bucket_name = "research-model-checkpoints"
-prefix = "DMS_ProteinGym_substitutions/"
+# Replace with your bucket name and prefix (if applicable)
+bucket_name = "your-s3-bucket-name"
+prefix = "your-prefix-to-data-files"
 
 # List all CSV files in the S3 bucket
 response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+# Get the file keys (can reaplce the .endswith if you have a different siffix for processed files
 file_keys = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith("_with_scoresandembeddings_allyears.csv")]
 
 print(f"Found {len(file_keys)} CSV files in S3.")
@@ -31,7 +29,7 @@ print(f"Found {len(file_keys)} CSV files in S3.")
 def parse_list_column(x):
     return np.array(ast.literal_eval(x))
 
-# Clean version of the evaluation function (no manual parsing needed)
+# Evaluation function
 def evaluate_by_train_fraction(df, representation_col, alpha=1.0, train_sizes=np.arange(0.1, 1.0, 0.1), n_repeats=5, random_state=36):
     X_all = np.stack(df[representation_col].values)  # Combine array column into a 2D matrix
     y_all = df["DMS_score"].values
@@ -64,8 +62,7 @@ def evaluate_by_train_fraction(df, representation_col, alpha=1.0, train_sizes=np
     return results
 
 
-# Path to save intermediate progress
-output_path = "semisup_results/onehot_120M_allyears_ridge.csv"
+output_path = "../semisupervised_results/onehot_120M_allyears_ridge.csv"
 write_header = not os.path.exists(output_path)
 
 # Main processing loop (using S3)

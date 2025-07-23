@@ -2,30 +2,23 @@ import pandas as pd
 import boto3
 import io
 import os
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split, KFold
-from sklearn.linear_model import Ridge
-from scipy.stats import spearmanr
 import numpy as np
 from tqdm.auto import tqdm
 import ast
-
 from itertools import combinations
-
-
-# Define S3 path
-pgfolder = "s3://research-model-checkpoints/DMS_ProteinGym_substitutions/"
+from sklearn.linear_model import Ridge
+from scipy.stats import spearmanr
 
 # Initialize S3 client
 s3 = boto3.client("s3")
 
-# Extract bucket name and prefix (folder path in S3)
-bucket_name = "research-model-checkpoints"
-prefix = "DMS_ProteinGym_substitutions/"
+# Replace with your bucket name and prefix (if applicable)
+bucket_name = "your-s3-bucket-name"
+prefix = "your-prefix-to-data-files"
 
 # List all CSV files in the S3 bucket
 response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+# Get the file keys (can reaplce the .endswith if you have a different siffix for processed files
 file_keys = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith("_with_scoresandembeddings_allyears.csv")]
 
 print(f"Found {len(file_keys)} CSV files in S3.")
@@ -34,7 +27,7 @@ print(f"Found {len(file_keys)} CSV files in S3.")
 def parse_list_column(x):
     return np.array(ast.literal_eval(x))
 
-# Okay now let's try splitting on the length of the protein rather than random splits
+# Splitting on the length of the protein -contiguous- rather than random splits
 
 # First, we need to make a position column and also filter out multi-mutants
 # Then train/test based on that range
@@ -112,9 +105,7 @@ def preprocess_and_evaluate_by_chunk(df, representation_col, model_label="model"
     return grouped_results
 
 
-# Got this working now, though the one-hot often has y_pred that is all identical... 
-# Need to dig into that!!
-output_path = "semisup_results/chunk_eval_120M_allyears_ridge.csv"
+output_path = "../semisupervised_results/chunk_eval_120M_allyears_ridge.csv"
 write_header = not os.path.exists(output_path)
 
 # Collect all rows here to write at once
