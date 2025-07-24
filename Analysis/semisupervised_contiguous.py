@@ -9,12 +9,14 @@ from itertools import combinations
 from sklearn.linear_model import Ridge
 from scipy.stats import spearmanr
 
-# Initialize S3 client
-s3 = boto3.client("s3")
-
-# Replace with your bucket name and prefix (if applicable)
+# Replace with your bucket name and prefix (if applicable) and file paths
 bucket_name = "your-s3-bucket-name"
 prefix = "your-prefix-to-data-files"
+output_path = "path/to/Results/semisupervised_results/chunk_eval_120M_allyears_ridge.csv"
+
+
+# Initialize S3 client
+s3 = boto3.client("s3")
 
 # List all CSV files in the S3 bucket
 response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -105,7 +107,6 @@ def preprocess_and_evaluate_by_chunk(df, representation_col, model_label="model"
     return grouped_results
 
 
-output_path = "../semisupervised_results/chunk_eval_120M_allyears_ridge.csv"
 write_header = not os.path.exists(output_path)
 
 # Collect all rows here to write at once
