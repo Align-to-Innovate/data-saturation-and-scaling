@@ -10,6 +10,9 @@ from transformers import AutoModel, AutoTokenizer
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from botocore.config import Config
 
+# Replace with your bucket name and prefix (if applicable)
+bucket_name = "your-s3-bucket-name"
+prefix = "your-prefix-to-data-files"
 
 print(f"[{datetime.datetime.now()}] All packaged imported.")
 
@@ -20,10 +23,6 @@ my_config = Config(
     retries={'max_attempts': 10}
 )
 print(f"[{datetime.datetime.now()}] S3 config intiialized.")
-
-# Replace with your bucket name and prefix (if applicable)
-bucket_name = "your-s3-bucket-name"
-prefix = "your-prefix-to-data-files"
 
 # Initialize S3 client
 s3 = boto3.client('s3', config=my_config)

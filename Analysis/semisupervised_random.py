@@ -11,12 +11,14 @@ import numpy as np
 from tqdm.auto import tqdm
 import ast
 
-# Initialize S3 client
-s3 = boto3.client("s3")
-
-# Replace with your bucket name and prefix (if applicable)
+# Replace with your bucket name and prefix (if applicable) and file paths
 bucket_name = "your-s3-bucket-name"
 prefix = "your-prefix-to-data-files"
+output_path = "path/to/Results/semisupervised_results/onehot_120M_allyears_ridge.csv"
+
+
+# Initialize S3 client
+s3 = boto3.client("s3")
 
 # List all CSV files in the S3 bucket
 response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -62,7 +64,6 @@ def evaluate_by_train_fraction(df, representation_col, alpha=1.0, train_sizes=np
     return results
 
 
-output_path = "../semisupervised_results/onehot_120M_allyears_ridge.csv"
 write_header = not os.path.exists(output_path)
 
 # Main processing loop (using S3)
