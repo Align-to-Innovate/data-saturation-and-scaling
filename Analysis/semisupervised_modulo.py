@@ -1,4 +1,5 @@
 # This script is for training linear regression models with modulo data splits
+# It creates the Results/semisupervised_results/modulo_eval_120M_allyears_ridge_simpleCV.csv file
 
 import pandas as pd
 import boto3
