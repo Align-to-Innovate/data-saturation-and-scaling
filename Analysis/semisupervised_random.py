@@ -1,4 +1,5 @@
 # This script is for training linear regression models with random data splits
+# It creates the Results/semisupervised_results/onehot_120M_allyears_ridge.csv file
 
 import pandas as pd
 import boto3
