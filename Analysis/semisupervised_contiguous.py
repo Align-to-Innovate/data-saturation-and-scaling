@@ -1,3 +1,5 @@
+# This script is for training linear regression models with contiguous data splits
+
 import pandas as pd
 import boto3
 import io
