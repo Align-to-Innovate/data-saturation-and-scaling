@@ -1,3 +1,8 @@
+# This scripy generated the AMPLIFY logits and embeddings for all sequences in ProteinGym
+# It takes in the ProteinGym data files and saves out files with 
+# "_with_scoresandembeddings.csv" for the 120M and 350M models trained to 1M epochs or 
+# "_with_scoresandembeddings_allyears.csv" for the 120M models trained for 250K epochs on yearly checkpoints
+
 import os
 import io
 import datetime
